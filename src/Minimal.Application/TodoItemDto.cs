@@ -1,6 +1,6 @@
 ﻿using Minimal.Model;
 
-namespace Minimal.Api;
+namespace Minimal.Application;
 
 public record TodoItemDto(string Name, TodoItemDto.ItemStatus Status)
 {

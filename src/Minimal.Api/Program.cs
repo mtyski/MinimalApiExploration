@@ -1,6 +1,11 @@
+using FluentValidation;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Minimal.Api;
+using Minimal.Api.Extensions;
+using Minimal.Application;
+using Minimal.Application.Handlers.TodoItems;
+using Minimal.Application.PipelineBehavior;
 using Minimal.Db;
 using Minimal.Model;
 
@@ -21,6 +26,12 @@ builder.Services.AddDbContext<TodoContext>(
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
+builder.Services.AddMediatR(typeof(ValidationPipelineBehavior));
+
+builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationPipelineBehavior<,>));
+
+builder.Services.AddValidatorsFromAssemblyContaining<Delete.Request.Validator>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -31,6 +42,10 @@ if (app.Environment.IsDevelopment())
 }
 
 // add endpoints
+app.AddEndpoints();
+
+// TODO: convert remaining manual maps to new middleware
+
 app.MapGet(
     "/items",
     async (TodoContext context) => await context.Items.ToListAsync());
@@ -57,49 +72,6 @@ app.MapPost(
         await context.SaveChangesAsync();
 
         return Results.Created($"/items/{newItem.Id}", TodoItemDto.FromTodoItem(newItem));
-    });
-
-app.MapPut(
-    "/items/{id:long}",
-    async (long id, TodoItemDto inputDto, TodoContext context) =>
-    {
-        if (await context.Items.FindAsync(id) is not { } item)
-        {
-            return Results.NotFound($"Todo item with id: {id} was not found!");
-        }
-
-        if (!TodoItem.CanRename(inputDto.Name))
-        {
-            return Results.BadRequest($"New name cannot be empty!");
-        }
-
-        if (!TodoItem.CanSetState((TodoItem.State)inputDto.Status))
-        {
-            return Results.BadRequest($"New state has to be a value from enumeration range!");
-        }
-
-        item.Rename(inputDto.Name);
-        item.SetState((TodoItem.State)inputDto.Status);
-        context.Update(item);
-
-        await context.SaveChangesAsync();
-
-        return Results.NoContent();
-    });
-
-app.MapDelete(
-    "/items/{id:long}",
-    async (long id, TodoContext context) =>
-    {
-        if (await context.Items.FindAsync(id) is not { } item)
-        {
-            return Results.NotFound($"Todo item with id: {id} was not found!");
-        }
-
-        context.Items.Remove(item);
-        await context.SaveChangesAsync();
-
-        return Results.NoContent();
     });
 
 app.UseHttpsRedirection();

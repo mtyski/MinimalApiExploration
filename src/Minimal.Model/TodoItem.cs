@@ -23,9 +23,9 @@ public class TodoItem : BaseEntity<long>
 
     public static TodoItem Create(string name) => new(name);
 
-    public static bool CanRename(string newName) => !string.IsNullOrWhiteSpace(newName);
+    public bool CanBeRenamedTo(string newName) => !string.IsNullOrWhiteSpace(newName) && Status != State.Done;
 
-    public static bool CanSetState(State state) => Enum.GetValues<State>().Contains(state);
+    public bool CanHaveSetStateTo(State state) => Enum.GetValues<State>().Contains(state) && Status != State.Done;
 
     public void Rename(string newName) =>
         Name = !string.IsNullOrWhiteSpace(newName) ?
