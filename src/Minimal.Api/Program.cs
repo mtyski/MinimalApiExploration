@@ -66,8 +66,18 @@ app.MapPut(
             return Results.NotFound($"Todo item with id: {id} was not found!");
         }
 
+        if (!TodoItem.CanRename(inputDto.Name))
+        {
+            return Results.BadRequest($"New name cannot be empty!");
+        }
+
+        if (!TodoItem.CanSetState((TodoItem.State)inputDto.Status))
+        {
+            return Results.BadRequest($"New state has to be a value from enumeration range!");
+        }
+
         item.Rename(inputDto.Name);
-        item.SetStatus((TodoItem.State)inputDto.Status);
+        item.SetState((TodoItem.State)inputDto.Status);
         context.Update(item);
 
         await context.SaveChangesAsync();
@@ -94,5 +104,10 @@ app.UseHttpsRedirection();
 
 app.Run();
 
-// required by the integration tests
-public partial class Program { }
+namespace Minimal.Api
+{
+    /// <summary>
+    ///     Required by integration tests.
+    /// </summary>
+    public partial class Program { }
+}

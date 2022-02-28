@@ -12,11 +12,26 @@ namespace Minimal.Api.IntegrationTests.Infrastructure
     {
         private const string TestEnvironmentName = "Test";
 
-        private readonly DbConnection connection;
+        private readonly IConfiguration configuration;
+
+        private DbConnection connection;
 
         public TodoWebApplicationFactory()
         {
+            configuration = new ConfigurationBuilder()
+                .AddJsonFile($"appsettings.{TestEnvironmentName}.json")
+                .Build();
             connection = CreateAndOpenDatabaseConnection();
+        }
+
+        private TodoContext Context => Services.GetRequiredService<TodoContext>();
+
+        internal void Reset()
+        {
+            connection.Dispose();
+            connection = CreateAndOpenDatabaseConnection();
+            Context.ChangeTracker.Clear();
+            Context.Database.EnsureCreated();
         }
 
         protected override IHost CreateHost(IHostBuilder builder) =>
@@ -37,12 +52,8 @@ namespace Minimal.Api.IntegrationTests.Infrastructure
             base.Dispose(disposing);
         }
 
-        private static DbConnection CreateAndOpenDatabaseConnection()
+        private DbConnection CreateAndOpenDatabaseConnection()
         {
-            var configuration = new ConfigurationBuilder()
-                .AddJsonFile($"appsettings.{TestEnvironmentName}.json")
-                .Build();
-
             var connection = new SqliteConnection(
                 new SqliteConnectionStringBuilder
                 {

@@ -1,17 +1,16 @@
-﻿using System.Net.Http;
-using Minimal.Api.IntegrationTests.Infrastructure;
+﻿using Minimal.Api.IntegrationTests.Infrastructure;
 
 namespace Minimal.Api.IntegrationTests.Specifications
 {
     public abstract class BaseIntegrationTest : IClassFixture<TodoWebApplicationFactory>, IDisposable
     {
+        private readonly TodoWebApplicationFactory todoWebApplicationFactory;
+
         public BaseIntegrationTest(TodoWebApplicationFactory webApplicationFactory)
         {
             todoWebApplicationFactory = webApplicationFactory;
             Client = webApplicationFactory.CreateClient();
         }
-
-        private readonly TodoWebApplicationFactory todoWebApplicationFactory;
 
         private protected HttpClient Client { get; }
 
@@ -21,6 +20,8 @@ namespace Minimal.Api.IntegrationTests.Specifications
             GC.SuppressFinalize(this);
         }
 
-        protected virtual void Dispose(bool disposing) => todoWebApplicationFactory.Dispose();
+        protected Uri Uri(string route) => new(Client.BaseAddress!, route);
+
+        protected virtual void Dispose(bool disposing) => todoWebApplicationFactory.Reset();
     }
 }

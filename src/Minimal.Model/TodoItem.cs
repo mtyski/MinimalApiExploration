@@ -23,13 +23,16 @@ namespace Minimal.Model
 
         public static TodoItem Create(string name) => new(name);
 
+        public static bool CanRename(string newName) => !string.IsNullOrWhiteSpace(newName);
+
+        public static bool CanSetState(State state) => Enum.GetValues<State>().Contains(state);
+
         public void Rename(string newName) => 
             Name = !string.IsNullOrWhiteSpace(newName) ?
             newName :
             throw new InvalidOperationException("New name cannot be empty!");
 
-
-        public void SetStatus(State status) => Status = status;
+        public void SetState(State status) => Status = status;
 
         public enum State
         {

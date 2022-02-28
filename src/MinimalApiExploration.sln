@@ -9,9 +9,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Minimal.Db", "Minimal.Db\Mi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Minimal.Model", "Minimal.Model\Minimal.Model.csproj", "{9C17923B-BB4D-456B-9A24-ADB34D69CA3B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Minimal.Model.Tests", "Minimal.Model.Tests\Minimal.Model.Tests.csproj", "{C0733FD3-3841-4978-A666-C303DF361FA0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Minimal.Model.Tests", "Minimal.Model.Tests\Minimal.Model.Tests.csproj", "{C0733FD3-3841-4978-A666-C303DF361FA0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Minimal.Api.IntegrationTests", "Minimal.Api.IntegrationTests\Minimal.Api.IntegrationTests.csproj", "{BA99D65C-9B29-4077-8907-019460839AE4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Minimal.Api.IntegrationTests", "Minimal.Api.IntegrationTests\Minimal.Api.IntegrationTests.csproj", "{BA99D65C-9B29-4077-8907-019460839AE4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{89921A2B-7813-42C0-A085-D817D0AA5439}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
