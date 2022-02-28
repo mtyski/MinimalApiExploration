@@ -13,15 +13,15 @@ namespace Minimal.Api.IntegrationTests.Specifications.TodoItem.Create
         public async Task NewItemIsCreatedAsync()
         {
             const string todoItemName = "Learn integration testing with minimal API!";
-            
+
             var postResponse = await Client.PostAsJsonAsync(
                 Uri("items"),
                 new NewTodoItemDto(todoItemName));
 
             var getResponse = await Client.GetAsync(postResponse.Headers.Location);
 
-            new[] 
-            { 
+            new[]
+            {
                 postResponse,
                 getResponse
             }.ForEach(response => response.EnsureSuccessStatusCode());

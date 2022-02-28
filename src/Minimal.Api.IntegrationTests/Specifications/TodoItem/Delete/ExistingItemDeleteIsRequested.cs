@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Minimal.Api.IntegrationTests.Infrastructure;
+﻿using Minimal.Api.IntegrationTests.Infrastructure;
 
 namespace Minimal.Api.IntegrationTests.Specifications.TodoItem.Delete;
 

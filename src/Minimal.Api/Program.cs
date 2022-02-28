@@ -1,8 +1,8 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Minimal.Api;
 using Minimal.Db;
 using Minimal.Model;
-using Minimal.Api;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,13 +10,15 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddDbContext<TodoContext>(opt => opt.UseSqlite(
-    new SqliteConnectionStringBuilder
-    {
-        DataSource = builder.Configuration["Database:Source"],
-        Mode = Enum.Parse<SqliteOpenMode>(builder.Configuration["Database:Mode"]),
-        Cache = Enum.Parse<SqliteCacheMode>(builder.Configuration["Database:Cache"])
-    }.ToString()));
+builder.Services.AddDbContext<TodoContext>(
+    opt => opt.UseSqlite(
+        new SqliteConnectionStringBuilder
+        {
+            DataSource = builder.Configuration["Database:Source"],
+            Mode = Enum.Parse<SqliteOpenMode>(builder.Configuration["Database:Mode"]),
+            Cache = Enum.Parse<SqliteCacheMode>(builder.Configuration["Database:Cache"])
+        }.ToString()));
+
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 var app = builder.Build();

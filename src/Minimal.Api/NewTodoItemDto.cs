@@ -1,1 +1,3 @@
-﻿public record NewTodoItemDto(string Name);
+﻿namespace Minimal.Api;
+
+public record NewTodoItemDto(string Name);

@@ -12,7 +12,7 @@ public sealed class TodoItemTests
     private readonly TodoItem TemplateItem;
 
     [Fact(DisplayName = "New items should be in Created state.")]
-    public void NewItemsAreInCreatedState() => 
+    public void NewItemsAreInCreatedState() =>
         TemplateItem.Should()
             .Match<TodoItem>(static ti => ti.Name == DefaultName)
             .And.Match<TodoItem>(static ti => ti.Status == TodoItem.State.Created);
