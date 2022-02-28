@@ -5,5 +5,5 @@
 
 - ASP.NET Core 6 minimal API.
 - Entity Framework Core.
-- MediatR.
-- FluentResults.
+- MediatR (todo).
+- FluentResults (todo).
