@@ -1,4 +1,5 @@
 ﻿using Minimal.Api.IntegrationTests.Infrastructure;
+using Minimal.Application;
 
 namespace Minimal.Api.IntegrationTests.Specifications.TodoItem.Update;
 
