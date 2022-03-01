@@ -14,8 +14,8 @@ internal abstract class Endpoint
         [Http.Delete] = static (app, route, handler) => app.MapDelete(route, handler)
     };
 
-    protected readonly ICollection<(Predicate<Result> Filter, Func<Result, IResult> MappingFunction)> ReasonToResultFactoryMap =
-        new List<(Predicate<Result> Filter, Func<Result, IResult> MappingFunction)>
+    protected readonly List<(Predicate<ResultBase> Filter, Func<ResultBase, IResult> MappingFunction)> ReasonToResultFactoryMap =
+        new()
         {
             (static result => result.Reasons.Contains<NotFoundError>(),
                 static result => Results.NotFound(result.Errors.OfType<NotFoundError>().Stringy())),
@@ -59,19 +59,20 @@ internal abstract class Endpoint
     /// Adds new error mapping to predefined errors.
     /// </summary>
     /// <param name="tuple"></param>
-    protected void AddResultMap((Predicate<Result> Filter, Func<Result, IResult> MappingFunction) tuple) =>
-        ReasonToResultFactoryMap.Add(tuple);
+    protected void AddResultMap(Predicate<ResultBase> filter, Func<ResultBase, IResult> mappingFunction) =>
+        ReasonToResultFactoryMap.Insert(0, (filter, mappingFunction));
 }
 
-internal abstract class Endpoint<TRequest> : Endpoint
-    where TRequest : IRequest<Result>
+internal abstract class Endpoint<TRequest, TResult> : Endpoint
+    where TRequest : IRequest<TResult>
+    where TResult : ResultBase
 {
     protected Endpoint()
     {
-        AddResultMap((IsNonGenericSuccessfulResult, static result => Results.NoContent()));
+        AddResultMap(IsNonGenericSuccessfulResult, static result => Results.NoContent());
 
-        static bool IsNonGenericSuccessfulResult(Result r) =>
-            r is { IsSuccess: true } && !r.GetType().IsGenericType;
+        static bool IsNonGenericSuccessfulResult(ResultBase r) =>
+            r is Result { IsSuccess: true };
     }
 
     protected async Task<IResult> Handle(TRequest request, IMediator mediator, CancellationToken token)
@@ -80,7 +81,7 @@ internal abstract class Endpoint<TRequest> : Endpoint
 
         return MapResult(result);
 
-        IResult MapResult(Result result) =>
+        IResult MapResult(ResultBase result) =>
             ReasonToResultFactoryMap.First(map => map.Filter(result))
                 .MappingFunction(result);
     }
@@ -118,28 +119,23 @@ internal abstract class Endpoint<TRequest> : Endpoint
     }
 }
 
-internal abstract class Endpoint<TRequest, TResponse> : Endpoint<TRequest>
-    where TRequest : IRequest<Result>
+internal abstract class Endpoint<TRequest, TResult, TResponse> : Endpoint<TRequest, TResult>
+    where TRequest : IRequest<TResult>
+    where TResult : Result<TResponse>
     where TResponse : class
 {
     public Endpoint()
     {
-        AddResultMap((IsSuccessfulGenericResultWithValue, static result => Results.Ok(GetResultValue(result))));
+        AddResultMap(
+            IsSuccessfulGenericResultWithValue,
+            static result => Results.Ok(GetResultValue(result)));
 
-        static bool IsSuccessfulGenericResultWithValue(Result r) =>
-            r is { IsSuccess: true } && r.GetType().IsGenericType && GetResultValue(r) is not null;
+        static bool IsSuccessfulGenericResultWithValue(ResultBase r) =>
+            r is Result<TResponse> { IsSuccess: true };
 
-        static TResponse? GetResultValue(Result r)
-        {
-            dynamic result = r;
-            try
-            {
-                return result.Value;
-            }
-            catch // cannot bind value in runtime
-            {
-                return null;
-            }
-        }
+        static TResponse? GetResultValue(ResultBase r) => 
+            r is Result<TResponse> genericResult ?
+                genericResult.Value :
+                null;
     }
 }
