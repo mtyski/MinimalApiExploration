@@ -16,7 +16,7 @@ internal class UpdateTodoItem : Endpoint<Put.Request, Result>
             [FromServices] IMediator mediator,
             CancellationToken token) =>
                 await Handle(
-                    new Put.Request(id, inputDto),
+                    new(id, inputDto),
                     mediator,
                     token));
     }

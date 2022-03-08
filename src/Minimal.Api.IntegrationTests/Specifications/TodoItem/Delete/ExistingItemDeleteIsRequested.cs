@@ -25,7 +25,7 @@ public class ExistingItemDeleteIsRequested : BaseIntegrationTest
         {
             deleteResponse,
             getResponse
-        }.Select(r => r.StatusCode)
+        }.Select(static r => r.StatusCode)
         .Should()
         .ContainInOrder(
             HttpStatusCode.NoContent,

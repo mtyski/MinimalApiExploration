@@ -22,21 +22,22 @@ internal class PostTodoItem : Endpoint<Post.Request, Result<TodoItemDto>, TodoIt
             [FromServices] IMediator mediator,
             CancellationToken token) =>
             await Handle(
-                new Post.Request(inputDto.Name),
+                new(inputDto.Name),
                 mediator,
                 token));
 
         static bool IsGenericResultWithLocation(ResultBase resultBase) =>
-            resultBase is Result<TodoItemDto> { Successes: var successes } result &&
+            resultBase is Result<TodoItemDto> { Successes: var successes } &&
             successes.OfType<Post.CreatedAtSuccess>().Any();
 
         static string GetLocationFrom(ResultBase resultBase) =>
             resultBase.Reasons.Contains<Post.CreatedAtSuccess>() ?
             resultBase.Reasons.OfType<Post.CreatedAtSuccess>().First().Message :
-            string.Empty;
+            throw new ArgumentException(
+                $"Received {nameof(resultBase)} does not contain an instance of {nameof(Post.CreatedAtSuccess)}!");
 
         static TodoItemDto GetValueFrom(ResultBase resultBase) =>
-            resultBase is Result<TodoItemDto> { IsSuccess: true, Value: var value } result ?
+            resultBase is Result<TodoItemDto> { IsSuccess: true, Value: var value } ?
             value :
             throw new ArgumentException(
                 $"Received {nameof(resultBase)} is not a generic {nameof(Result<TodoItemDto>)} indicating success!");
