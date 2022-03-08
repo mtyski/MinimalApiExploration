@@ -4,6 +4,6 @@
 ## Used technologies
 
 - ASP.NET Core 6 minimal API.
-- Entity Framework Core.
-- MediatR (todo).
-- FluentResults (todo).
+- [Entity Framework Core](https://github.com/dotnet/efcore).
+- [MediatR](https://github.com/jbogard/MediatR).
+- [FluentResults](https://github.com/altmann/FluentResults).
