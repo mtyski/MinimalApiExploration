@@ -58,7 +58,8 @@ internal abstract class Endpoint
     /// <summary>
     /// Adds new error mapping to predefined errors.
     /// </summary>
-    /// <param name="tuple"></param>
+    /// <param name="filter">Predicate that applies for a mapping function.</param>
+    /// <param name="mappingFunction">Mapping function between internal <see cref="ResultBase"/> implementor and </param>
     protected void AddResultMap(Predicate<ResultBase> filter, Func<ResultBase, IResult> mappingFunction) =>
         ReasonToResultFactoryMap.Insert(0, (filter, mappingFunction));
 }
@@ -69,7 +70,7 @@ internal abstract class Endpoint<TRequest, TResult> : Endpoint
 {
     protected Endpoint()
     {
-        AddResultMap(IsNonGenericSuccessfulResult, static result => Results.NoContent());
+        AddResultMap(IsNonGenericSuccessfulResult, static _ => Results.NoContent());
 
         static bool IsNonGenericSuccessfulResult(ResultBase r) =>
             r is Result { IsSuccess: true };
@@ -81,9 +82,9 @@ internal abstract class Endpoint<TRequest, TResult> : Endpoint
 
         return MapResult(result);
 
-        IResult MapResult(ResultBase result) =>
-            ReasonToResultFactoryMap.First(map => map.Filter(result))
-                .MappingFunction(result);
+        IResult MapResult(ResultBase resultBase) =>
+            ReasonToResultFactoryMap.First(map => map.Filter(resultBase))
+                .MappingFunction(resultBase);
     }
 
     /// <inheritdoc />
@@ -124,7 +125,7 @@ internal abstract class Endpoint<TRequest, TResult, TResponse> : Endpoint<TReque
     where TResult : Result<TResponse>
     where TResponse : class
 {
-    public Endpoint()
+    protected Endpoint()
     {
         AddResultMap(
             IsSuccessfulGenericResultWithValue,

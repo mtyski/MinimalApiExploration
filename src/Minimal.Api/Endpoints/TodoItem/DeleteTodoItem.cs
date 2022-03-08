@@ -11,7 +11,7 @@ internal class DeleteTodoItem : Endpoint<Delete.Request, Result>
         Route("/items/{id:long}");
         Handler(async ([FromRoute] long id, [FromServices] IMediator mediator, CancellationToken token) =>
             await Handle(
-                new Delete.Request(id),
+                new(id),
                 mediator,
                 token));
     }

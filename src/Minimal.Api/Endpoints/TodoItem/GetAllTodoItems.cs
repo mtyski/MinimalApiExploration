@@ -14,7 +14,7 @@ internal class GetAllTodoItems : Endpoint<GetAll.Request, Result<IEnumerable<Tod
             [FromServices] IMediator mediator,
             CancellationToken cancellationToken) =>
                 await Handle(
-                    new GetAll.Request(),
+                    new(),
                     mediator,
                     cancellationToken));
     }

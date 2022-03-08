@@ -6,7 +6,7 @@ public abstract class BaseIntegrationTest : IClassFixture<TodoWebApplicationFact
 {
     private readonly TodoWebApplicationFactory todoWebApplicationFactory;
 
-    public BaseIntegrationTest(TodoWebApplicationFactory webApplicationFactory)
+    protected BaseIntegrationTest(TodoWebApplicationFactory webApplicationFactory)
     {
         todoWebApplicationFactory = webApplicationFactory;
         Client = webApplicationFactory.CreateClient();

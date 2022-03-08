@@ -15,7 +15,7 @@ internal class GetTodoItemById : Endpoint<GetById.Request, Result<TodoItemDto>, 
             [FromServices] IMediator mediator,
             CancellationToken token) =>
                 await Handle(
-                    new GetById.Request(id),
+                    new(id),
                     mediator,
                     token));
     }

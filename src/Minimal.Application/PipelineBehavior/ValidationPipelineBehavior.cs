@@ -6,7 +6,6 @@ public abstract class ValidationPipelineBehavior
 {
     protected static readonly Dictionary<string, Func<string, IReason>> ErrorCodeToFactoryFuncMap = new()
     {
-        [BadRequestError.ErrorCode] = static em => new BadRequestError(em),
         [NotFoundError.ErrorCode] = static em => new NotFoundError(em),
     };
 }
@@ -34,15 +33,16 @@ public class ValidationPipelineBehavior<TRequest, TResponse> : ValidationPipelin
 
         var validationContext = new ValidationContext<TRequest>(request);
 
-        var validationTasks = validators.Select(v => v.ValidateAsync(validationContext, cancellationToken));
+        var validationTasks = validators.Select(v => v.ValidateAsync(validationContext, cancellationToken))
+            .Memoize();
 
         await Task.WhenAll(validationTasks);
 
         var validationFailures = validationTasks.Select(static t => t.Result)
-            .SelectMany(vr => vr.Errors)
+            .SelectMany(static vr => vr.Errors)
             .ToLookup(
-                vr => vr.PropertyName,
-                vr => (vr.ErrorCode, vr.ErrorMessage));
+                static vr => vr.PropertyName,
+                static vr => (vr.ErrorCode, vr.ErrorMessage));
 
         if (!validationFailures.Any())
         {
@@ -52,7 +52,7 @@ public class ValidationPipelineBehavior<TRequest, TResponse> : ValidationPipelin
         var response = new TResponse();
         response.Reasons.AddRange(
             validationFailures.SelectMany(
-                vf => vf,
+                static vf => vf,
                 static (_, tuple) => MapToError(tuple.ErrorCode, tuple.ErrorMessage)));
         return response;
 

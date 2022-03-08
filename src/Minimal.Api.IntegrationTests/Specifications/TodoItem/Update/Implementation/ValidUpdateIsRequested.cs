@@ -25,7 +25,7 @@ public class ValidUpdateIsRequested : BaseTodoItemUpdateSpecification
         {
             putResponse,
             getResponse
-        }.ForEach(response => response.EnsureSuccessStatusCode());
+        }.ForEach(static response => response.EnsureSuccessStatusCode());
 
         var content = await getResponse.Content.ReadAsAsync<TodoItemDto>();
 
