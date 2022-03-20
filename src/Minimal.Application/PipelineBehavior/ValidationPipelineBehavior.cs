@@ -33,12 +33,10 @@ public class ValidationPipelineBehavior<TRequest, TResponse> : ValidationPipelin
 
         var validationContext = new ValidationContext<TRequest>(request);
 
-        var validationTasks = validators.Select(v => v.ValidateAsync(validationContext, cancellationToken))
-            .Memoize();
+        var validationResults =
+            await Task.WhenAll(validators.Select(v => v.ValidateAsync(validationContext, cancellationToken)));
 
-        await Task.WhenAll(validationTasks);
-
-        var validationFailures = validationTasks.Select(static t => t.Result)
+        var validationFailures = validationResults
             .SelectMany(static vr => vr.Errors)
             .ToLookup(
                 static vr => vr.PropertyName,

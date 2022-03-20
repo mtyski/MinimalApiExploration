@@ -5,23 +5,27 @@ namespace Minimal.Api.Endpoints;
 
 internal abstract class Endpoint
 {
-    protected static readonly Dictionary<Http, Func<WebApplication, string, Delegate, RouteHandlerBuilder>> VerbToMapFactoryMethod = new()
-    {
-        [Http.Get] = static (app, route, handler) => app.MapGet(route, handler),
-        [Http.Post] = static (app, route, handler) => app.MapPost(route, handler),
-        [Http.Put] = static (app, route, handler) => app.MapPut(route, handler),
-        [Http.Patch] = static (app, route, handler) => app.MapMethods(route, new[] { "PATCH" }, handler),
-        [Http.Delete] = static (app, route, handler) => app.MapDelete(route, handler)
-    };
-
-    protected readonly List<(Predicate<ResultBase> Filter, Func<ResultBase, IResult> MappingFunction)> ReasonToResultFactoryMap =
-        new()
+    protected static readonly Dictionary<Http, Func<WebApplication, string, Delegate, RouteHandlerBuilder>>
+        VerbToMapFactoryMethod = new()
         {
-            (static result => result.Reasons.Contains<NotFoundError>(),
-                static result => Results.NotFound(result.Errors.OfType<NotFoundError>().Stringy())),
-            (static result => result.Reasons.Contains<BadRequestError>(),
-                static result => Results.BadRequest(result.Errors.OfType<BadRequestError>().Stringy()))
+            [Http.Get] = static (app, route, handler) => app.MapGet(route, handler),
+            [Http.Post] = static (app, route, handler) => app.MapPost(route, handler),
+            [Http.Put] = static (app, route, handler) => app.MapPut(route, handler),
+            [Http.Patch] =
+                static (app, route, handler) =>
+                    app.MapMethods(route, new[] {"PATCH"}, handler),
+            [Http.Delete] = static (app, route, handler) => app.MapDelete(route, handler)
         };
+
+    protected readonly List<(Predicate<ResultBase> Filter, Func<ResultBase, IResult> MappingFunction)>
+        ReasonToResultFactoryMap =
+            new()
+            {
+                (static result => result.Reasons.Contains<NotFoundError>(),
+                    static result => Results.NotFound(result.Errors.OfType<NotFoundError>().Stringy())),
+                (static result => result.Reasons.Contains<BadRequestError>(),
+                    static result => Results.BadRequest(result.Errors.OfType<BadRequestError>().Stringy()))
+            };
 
     /// <summary>
     /// Gets the route associated with the endpoint.
@@ -48,6 +52,8 @@ internal abstract class Endpoint
     protected void Verb(Http verb) => HttpVerb = verb;
 
     protected void Handler(Delegate handler) => RequestHandler = handler;
+
+    protected virtual string[] Tags => new[] { GetType().Namespace!.Split('.')[^1] };
 
     /// <summary>
     /// Builds the endpoint instance.
@@ -114,9 +120,10 @@ internal abstract class Endpoint<TRequest, TResult> : Endpoint
         }
 
         endpointRegistrationFunc.Invoke(
-            app,
-            EndpointRoute,
-            RequestHandler);
+                app,
+                EndpointRoute,
+                RequestHandler)
+            .WithTags(Tags);
     }
 }
 

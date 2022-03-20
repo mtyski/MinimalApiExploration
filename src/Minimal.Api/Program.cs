@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using FluentValidation;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -5,6 +6,7 @@ using Minimal.Api.Extensions;
 using Minimal.Application.Handlers.TodoItems;
 using Minimal.Application.PipelineBehavior;
 using Minimal.Db;
+using Microsoft.AspNetCore.Http.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,11 +26,14 @@ builder.Services.AddDbContext<TodoContext>(
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddMediatR(typeof(ValidationPipelineBehavior), typeof(GetAll.Request.Handler));
+builder.Services.AddMediatR(typeof(ValidationPipelineBehavior));
 
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationPipelineBehavior<,>));
 
 builder.Services.AddValidatorsFromAssemblyContaining<Delete.Request.Validator>();
+
+builder.Services.Configure<JsonOptions>(
+    static opts => opts.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
 var app = builder.Build();
 
@@ -38,6 +43,8 @@ app.UseSwaggerUI();
 
 // add endpoints
 app.AddEndpoints();
+
+app.Migrate<TodoContext>();
 
 app.UseHttpsRedirection();
 

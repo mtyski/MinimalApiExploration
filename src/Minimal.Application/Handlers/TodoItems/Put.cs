@@ -3,6 +3,7 @@ using Minimal.Db;
 using Minimal.Model;
 
 namespace Minimal.Application.Handlers.TodoItems;
+
 public abstract class Put
 {
     public record Request(long ItemId, TodoItemDto TodoItemDto) : IRequest<Result>
@@ -26,8 +27,9 @@ public abstract class Put
                     .MustAsync(
                         async (request, cancellationToken) =>
                         {
-                            var item = await FindItemByIdAsync(request.ItemId, context, cancellationToken);
-                            return item!.CanBeRenamedTo(request.TodoItemDto.Name);
+                            var (itemId, (name, _)) = request;
+                            var item = await FindItemByIdAsync(itemId, context, cancellationToken);
+                            return item!.CanBeRenamedTo(name);
                         })
                     .WithMessage(static r => $"Item with id {r.ItemId} cannot be renamed to {r.GetNewTodoItemName()}!");
 
@@ -35,8 +37,9 @@ public abstract class Put
                     .MustAsync(
                         async (request, cancellationToken) =>
                         {
-                            var item = await FindItemByIdAsync(request.ItemId, context, cancellationToken);
-                            return item!.CanHaveSetStateTo((TodoItem.State)request.TodoItemDto.Status);
+                            var (itemId, (_, status)) = request;
+                            var item = await FindItemByIdAsync(itemId, context, cancellationToken);
+                            return item!.CanHaveSetStateTo((TodoItem.State)status);
                         })
                     .WithMessage(static r => $"Item with id {r.ItemId} cannot have state set to to {r.TodoItemDto.Status}!");
             }
@@ -52,7 +55,7 @@ public abstract class Put
                 Context = context;
             }
 
-            public TodoContext Context { get; }
+            private TodoContext Context { get; }
 
             public async Task<Result> Handle(Request request, CancellationToken cancellationToken)
             {

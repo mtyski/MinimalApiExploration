@@ -36,15 +36,7 @@ public class TodoWebApplicationFactory : WebApplicationFactory<Program>
 
     protected override IHost CreateHost(IHostBuilder builder) =>
         base.CreateHost(
-            builder.UseEnvironment(TestEnvironmentName)
-                .ConfigureServices(
-                    services =>
-                    {
-                        using var provider = services.BuildServiceProvider();
-                        using var scope = provider.CreateScope();
-                        using var context = scope.ServiceProvider.GetRequiredService<TodoContext>();
-                        context.Database.EnsureCreated();
-                    }));
+            builder.UseEnvironment(TestEnvironmentName));
 
     protected override void Dispose(bool disposing)
     {
@@ -54,7 +46,7 @@ public class TodoWebApplicationFactory : WebApplicationFactory<Program>
 
     private DbConnection CreateAndOpenDatabaseConnection()
     {
-        var connection = new SqliteConnection(
+        var databaseConnection = new SqliteConnection(
             new SqliteConnectionStringBuilder
             {
                 DataSource = configuration["Database:Source"],
@@ -62,8 +54,8 @@ public class TodoWebApplicationFactory : WebApplicationFactory<Program>
                 Cache = Enum.Parse<SqliteCacheMode>(configuration["Database:Cache"])
             }.ToString());
 
-        connection.Open();
+        databaseConnection.Open();
 
-        return connection;
+        return databaseConnection;
     }
 }

@@ -12,11 +12,12 @@ public class TodoContext : DbContext
 
     public DbSet<TodoItem> Items => Set<TodoItem>();
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder) => modelBuilder.Entity<TodoItem>(
-            item =>
+    protected override void OnModelCreating(ModelBuilder modelBuilder) => 
+        modelBuilder.Entity<TodoItem>(
+            static item =>
             {
-                item.HasKey(x => x.Id);
-                item.Property(x => x.Name);
-                item.Property(x => x.Status);
+                item.HasKey(static x => x.Id);
+                item.Property(static x => x.Name);
+                item.Property(static x => x.Status);
             });
 }
