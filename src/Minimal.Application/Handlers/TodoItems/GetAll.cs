@@ -2,6 +2,7 @@
 using Minimal.Db;
 
 namespace Minimal.Application.Handlers.TodoItems;
+
 public abstract class GetAll
 {
     public record Request : IRequest<Result<IEnumerable<TodoItemDto>>>

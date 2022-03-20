@@ -21,10 +21,10 @@ internal class PostTodoItem : Endpoint<Post.Request, Result<TodoItemDto>, TodoIt
             [FromBody] NewTodoItemDto inputDto,
             [FromServices] IMediator mediator,
             CancellationToken token) =>
-            await Handle(
-                new(inputDto.Name),
-                mediator,
-                token));
+                await Handle(
+                    new(inputDto.Name),
+                    mediator,
+                    token));
 
         static bool IsGenericResultWithLocation(ResultBase resultBase) =>
             resultBase is Result<TodoItemDto> { Successes: var successes } &&

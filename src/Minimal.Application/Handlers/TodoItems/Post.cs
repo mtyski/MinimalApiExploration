@@ -2,6 +2,7 @@
 using Minimal.Model;
 
 namespace Minimal.Application.Handlers.TodoItems;
+
 public abstract class Post
 {
     public record Request(string Name) : IRequest<Result<TodoItemDto>>
@@ -10,7 +11,7 @@ public abstract class Post
         {
             public Validator()
             {
-                RuleFor(x => x.Name)
+                RuleFor(static x => x.Name)
                     .NotEmpty();
             }
         }

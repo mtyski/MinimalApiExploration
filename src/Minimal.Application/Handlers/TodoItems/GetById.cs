@@ -2,6 +2,7 @@
 using Minimal.Db;
 
 namespace Minimal.Application.Handlers.TodoItems;
+
 public abstract class GetById
 {
     public record Request(long Id) : IRequest<Result<TodoItemDto>>
