@@ -10,7 +10,8 @@ public abstract class ValidationPipelineBehavior
     };
 }
 
-public class ValidationPipelineBehavior<TRequest, TResponse> : ValidationPipelineBehavior, IPipelineBehavior<TRequest, TResponse>
+public class ValidationPipelineBehavior<TRequest, TResponse> : ValidationPipelineBehavior,
+    IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>
     where TResponse : ResultBase, new()
 {
@@ -55,8 +56,8 @@ public class ValidationPipelineBehavior<TRequest, TResponse> : ValidationPipelin
         return response;
 
         static IReason MapToError(string errorCode, string errorMessage) =>
-            ErrorCodeToFactoryFuncMap.TryGetValue(errorCode, out var factoryFunc) ?
-                factoryFunc(errorMessage) :
-                new BadRequestError(errorMessage);
+            ErrorCodeToFactoryFuncMap.TryGetValue(errorCode, out var factoryFunc)
+                ? factoryFunc(errorMessage)
+                : new BadRequestError(errorMessage);
     }
 }

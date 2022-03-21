@@ -53,7 +53,7 @@ internal abstract class Endpoint
 
     protected void Handler(Delegate handler) => RequestHandler = handler;
 
-    protected virtual string[] Tags => new[] { GetType().Namespace!.Split('.')[^1] };
+    protected virtual string[] Tags => new[] {GetType().Namespace!.Split('.')[^1]};
 
     /// <summary>
     /// Builds the endpoint instance.
@@ -79,7 +79,7 @@ internal abstract class Endpoint<TRequest, TResult> : Endpoint
         AddResultMap(IsNonGenericSuccessfulResult, static _ => Results.NoContent());
 
         static bool IsNonGenericSuccessfulResult(ResultBase r) =>
-            r is Result { IsSuccess: true };
+            r is Result {IsSuccess: true};
     }
 
     protected async Task<IResult> Handle(TRequest request, IMediator mediator, CancellationToken token)
@@ -139,11 +139,9 @@ internal abstract class Endpoint<TRequest, TResult, TResponse> : Endpoint<TReque
             static result => Results.Ok(GetResultValue(result)));
 
         static bool IsSuccessfulGenericResultWithValue(ResultBase r) =>
-            r is Result<TResponse> { IsSuccess: true };
+            r is Result<TResponse> {IsSuccess: true};
 
-        static TResponse? GetResultValue(ResultBase r) => 
-            r is Result<TResponse> genericResult ?
-                genericResult.Value :
-                null;
+        static TResponse? GetResultValue(ResultBase r) =>
+            r is Result<TResponse> genericResult ? genericResult.Value : null;
     }
 }

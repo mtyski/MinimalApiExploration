@@ -1,4 +1,5 @@
 ﻿using Minimal.Application.Errors;
+using Minimal.Application.Extensions;
 using Minimal.Db;
 using Minimal.Model;
 
@@ -6,71 +7,44 @@ namespace Minimal.Application.Handlers.TodoItems;
 
 public abstract class Put
 {
-    public record Request(long ItemId, TodoItemDto TodoItemDto) : IRequest<Result>
+    public record Request(long ItemId, TodoItemDto TodoItemDto) : IRequest<Result<Unit>>
     {
         public string GetNewTodoItemName() =>
             string.IsNullOrWhiteSpace(TodoItemDto.Name) ? "empty name" : TodoItemDto.Name;
+    }
 
-        public class Validator : AbstractValidator<Request>
+    public record ValidRequest(TodoItem Item, TodoItem.State Status, Request Request);
+
+    public class Handler : IValidRequestHandler<Request, ValidRequest, Unit>
+    {
+        public Handler(TodoContext context)
         {
-            public Validator(TodoContext context)
-            {
-                CascadeMode = CascadeMode.Stop;
-                RuleFor(static r => r.ItemId)
-                    .MustAsync(
-                        async (id, token) =>
-                            await FindItemByIdAsync(id, context, token) is not null)
-                    .WithErrorCode(NotFoundError.ErrorCode)
-                    .WithMessage(static r => $"Todo item with id: {r.ItemId} was not found!");
-
-                RuleFor(static r => r)
-                    .MustAsync(
-                        async (request, cancellationToken) =>
-                        {
-                            var (itemId, (name, _)) = request;
-                            var item = await FindItemByIdAsync(itemId, context, cancellationToken);
-                            return item!.CanBeRenamedTo(name);
-                        })
-                    .WithMessage(static r => $"Item with id {r.ItemId} cannot be renamed to {r.GetNewTodoItemName()}!");
-
-                RuleFor(static r => r)
-                    .MustAsync(
-                        async (request, cancellationToken) =>
-                        {
-                            var (itemId, (_, status)) = request;
-                            var item = await FindItemByIdAsync(itemId, context, cancellationToken);
-                            return item!.CanHaveSetStateTo((TodoItem.State)status);
-                        })
-                    .WithMessage(static r => $"Item with id {r.ItemId} cannot have state set to to {r.TodoItemDto.Status}!");
-            }
-
-            private static async Task<TodoItem?> FindItemByIdAsync(long id, TodoContext context, CancellationToken token) =>
-                await context.Items.FindAsync(new object[] { id }, token);
+            Context = context;
         }
 
-        public class Handler : IRequestHandler<Request, Result>
+        private TodoContext Context { get; }
+
+        public async Task<Result<ValidRequest>> Parse(Request request, CancellationToken cancellationToken)
         {
-            public Handler(TodoContext context)
-            {
-                Context = context;
-            }
+            var itemNullable = await Context.Items.FindAsync(new object[] {request.ItemId}, cancellationToken);
+            var status = (TodoItem.State)request.TodoItemDto.Status;
+            return itemNullable.ToResultFromNull(
+                    new NotFoundError($"Todo item with id: {request.ItemId} was not found!"))
+                .Bind(item => Result.Merge(
+                        Result.OkIf(item.CanBeRenamedTo(request.TodoItemDto.Name),
+                            $"Item with id {request.ItemId} cannot be renamed to {request.GetNewTodoItemName()}!"),
+                        Result.OkIf(item.CanHaveSetStateTo(status),
+                            $"Item with id {request.ItemId} cannot have state set to to {request.TodoItemDto.Status}!"))
+                    .ToResult(new ValidRequest(item, status, request)));
+        }
 
-            private TodoContext Context { get; }
-
-            public async Task<Result> Handle(Request request, CancellationToken cancellationToken)
-            {
-                var item = await Context.Items.FindAsync(
-                    new object[] { request.ItemId },
-                    cancellationToken);
-
-                item!.Rename(request.GetNewTodoItemName());
-                item.SetState((TodoItem.State)request.TodoItemDto.Status);
-
-                Context.Update(item);
-                await Context.SaveChangesAsync(cancellationToken);
-
-                return Result.Ok();
-            }
+        public async Task<Unit> HandleResponse(ValidRequest request, CancellationToken cancellationToken)
+        {
+            request.Item.Rename(request.Request.GetNewTodoItemName());
+            request.Item.SetState(request.Status);
+            Context.Update(request.Item);
+            await Context.SaveChangesAsync(cancellationToken);
+            return Unit.Value;
         }
     }
 }
