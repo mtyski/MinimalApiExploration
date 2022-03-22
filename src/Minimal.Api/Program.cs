@@ -30,7 +30,10 @@ builder.Services.AddMediatR(typeof(ValidationPipelineBehavior));
 
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationPipelineBehavior<,>));
 
-builder.Services.AddValidatorsFromAssemblyContaining<Delete.Request.Validator>();
+builder.Services.AddValidatorsFromAssemblyContaining<Delete.Request>(
+    default,
+    default,
+    true);
 
 builder.Services.Configure<JsonOptions>(
     static opts => opts.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));

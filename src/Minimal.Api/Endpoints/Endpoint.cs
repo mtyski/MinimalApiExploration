@@ -21,9 +21,9 @@ internal abstract class Endpoint
         ReasonToResultFactoryMap =
             new()
             {
-                (static result => result.Reasons.Contains<NotFoundError>(),
+                (static result => result.HasError<NotFoundError>(),
                     static result => Results.NotFound(result.Errors.OfType<NotFoundError>().Stringy())),
-                (static result => result.Reasons.Contains<BadRequestError>(),
+                (static result => result.HasError<BadRequestError>(),
                     static result => Results.BadRequest(result.Errors.OfType<BadRequestError>().Stringy()))
             };
 

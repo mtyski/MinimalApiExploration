@@ -7,7 +7,7 @@ public abstract class GetAll
 {
     public record Request : IRequest<Result<IEnumerable<TodoItemDto>>>
     {
-        public class Handler : IRequestHandler<Request, Result<IEnumerable<TodoItemDto>>>
+        internal class Handler : IRequestHandler<Request, Result<IEnumerable<TodoItemDto>>>
         {
             public Handler(TodoContext todoContext)
             {
@@ -19,7 +19,7 @@ public abstract class GetAll
             public async Task<Result<IEnumerable<TodoItemDto>>> Handle(Request request, CancellationToken cancellationToken)
             {
                 var items = await Context.Items.ToListAsync(cancellationToken);
-                return Result.Ok(items.Select(TodoItemDto.FromTodoItem));
+                return items.Select(TodoItemDto.FromTodoItem).ToResult();
             }
         }
     }

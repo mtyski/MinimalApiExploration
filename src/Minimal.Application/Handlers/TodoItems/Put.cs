@@ -12,7 +12,7 @@ public abstract class Put
         public string GetNewTodoItemName() =>
             string.IsNullOrWhiteSpace(TodoItemDto.Name) ? "empty name" : TodoItemDto.Name;
 
-        public class Validator : AbstractValidator<Request>
+        internal class Validator : AbstractValidator<Request>
         {
             public Validator()
             {
@@ -26,7 +26,7 @@ public abstract class Put
             }
         }
 
-        public class Handler : IValidatedRequestHandler<Request, ValidRequest, Result>
+        internal class Handler : IValidatedRequestHandler<Request, ValidRequest, Result>
         {
             public Handler(TodoContext context)
             {
@@ -35,7 +35,7 @@ public abstract class Put
 
             private TodoContext Context { get; }
 
-            public async Task<Result<ValidRequest>> Parse(Request request, CancellationToken cancellationToken)
+            public async Task<Result<ValidRequest>> Parse(Request request, CancellationToken cancellationToken = default)
             {
                 var (itemId, (newName, newState)) = request;
                 var itemNullable = await Context.Items.FindAsync(new object[] { itemId }, cancellationToken);
@@ -43,7 +43,7 @@ public abstract class Put
 
                 return Result.FailIf(
                         itemNullable is null,
-                        new NotFoundError($"Todo item with id: {request.ItemId} was not found!"))
+                        new NotFoundError($"Todo item with id: {itemId} was not found!"))
                     .ToResult(itemNullable!)
                     .Bind(
                         item => Result.Merge(
@@ -62,7 +62,7 @@ public abstract class Put
                                     newName)));
             }
 
-            public async Task<Result> HandleValidatedRequest(ValidRequest request, CancellationToken cancellationToken)
+            public async Task<Result> HandleValidatedRequest(ValidRequest request, CancellationToken cancellationToken = default)
             {
                 var (todoItem, status, itemName) = request;
                 todoItem.Rename(itemName);
@@ -74,5 +74,5 @@ public abstract class Put
         }
     }
 
-    public record ValidRequest(TodoItem Item, TodoItem.State Status, string ItemName);
+    internal record ValidRequest(TodoItem Item, TodoItem.State Status, string ItemName);
 }

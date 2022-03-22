@@ -7,7 +7,7 @@ public abstract class Post
 {
     public record Request(string Name) : IRequest<Result<TodoItemDto>>
     {
-        public class Validator : AbstractValidator<Request>
+        internal class Validator : AbstractValidator<Request>
         {
             public Validator()
             {
@@ -16,7 +16,7 @@ public abstract class Post
             }
         }
 
-        public class Handler : IRequestHandler<Request, Result<TodoItemDto>>
+        internal class Handler : IRequestHandler<Request, Result<TodoItemDto>>
         {
             public Handler(TodoContext context)
             {
@@ -33,7 +33,6 @@ public abstract class Post
 
                 return Result.Ok(TodoItemDto.FromTodoItem(item))
                     .WithSuccess(new CreatedAtSuccess(item.Id));
-
             }
         }
     }
