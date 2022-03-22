@@ -4,7 +4,7 @@ using Minimal.Application.Handlers.TodoItems;
 
 namespace Minimal.Api.Endpoints.TodoItem;
 
-internal class UpdateTodoItem : Endpoint<Put.Request, Result<Unit>>
+internal class UpdateTodoItem : Endpoint<Put.Request, Result>
 {
     public UpdateTodoItem()
     {

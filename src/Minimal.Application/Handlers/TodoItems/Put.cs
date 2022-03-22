@@ -7,44 +7,72 @@ namespace Minimal.Application.Handlers.TodoItems;
 
 public abstract class Put
 {
-    public record Request(long ItemId, TodoItemDto TodoItemDto) : IRequest<Result<Unit>>
+    public record Request(long ItemId, TodoItemDto TodoItemDto) : IRequest<Result>
     {
         public string GetNewTodoItemName() =>
             string.IsNullOrWhiteSpace(TodoItemDto.Name) ? "empty name" : TodoItemDto.Name;
+
+        public class Validator : AbstractValidator<Request>
+        {
+            public Validator()
+            {
+                RuleFor(static x => x.TodoItemDto.Name)
+                    .NotEmpty()
+                    .WithMessage(static x => $"Item with id {x.ItemId} cannot be renamed to {x.GetNewTodoItemName()}!");
+
+                RuleFor(static x => x.TodoItemDto.Status)
+                    .IsInEnum()
+                    .WithMessage(static x => $"Item with id {x.ItemId} cannot have state set to to {x.TodoItemDto.Status}!");
+            }
+        }
+
+        public class Handler : IValidatedRequestHandler<Request, ValidRequest, Result>
+        {
+            public Handler(TodoContext context)
+            {
+                Context = context;
+            }
+
+            private TodoContext Context { get; }
+
+            public async Task<Result<ValidRequest>> Parse(Request request, CancellationToken cancellationToken)
+            {
+                var (itemId, (newName, newState)) = request;
+                var itemNullable = await Context.Items.FindAsync(new object[] { itemId }, cancellationToken);
+                var status = (TodoItem.State)newState;
+
+                return Result.FailIf(
+                        itemNullable is null,
+                        new NotFoundError($"Todo item with id: {request.ItemId} was not found!"))
+                    .ToResult(itemNullable!)
+                    .Bind(
+                        item => Result.Merge(
+                                Result.OkIf(
+                                    item.CanBeRenamedTo(newName),
+                                    new BadRequestError(
+                                        $"Item with id {itemId} cannot be renamed to {request.GetNewTodoItemName()}!")),
+                                Result.OkIf(
+                                    item.CanHaveSetStateTo(status),
+                                    new BadRequestError(
+                                        $"Item with id {itemId} cannot have state set to to {status}!")))
+                            .ToResult(
+                                new ValidRequest(
+                                    item,
+                                    status,
+                                    newName)));
+            }
+
+            public async Task<Result> HandleValidatedRequest(ValidRequest request, CancellationToken cancellationToken)
+            {
+                var (todoItem, status, itemName) = request;
+                todoItem.Rename(itemName);
+                todoItem.SetState(status);
+                Context.Update(todoItem);
+                await Context.SaveChangesAsync(cancellationToken);
+                return Result.Ok();
+            }
+        }
     }
 
-    public record ValidRequest(TodoItem Item, TodoItem.State Status, Request Request);
-
-    public class Handler : IValidRequestHandler<Request, ValidRequest, Unit>
-    {
-        public Handler(TodoContext context)
-        {
-            Context = context;
-        }
-
-        private TodoContext Context { get; }
-
-        public async Task<Result<ValidRequest>> Parse(Request request, CancellationToken cancellationToken)
-        {
-            var itemNullable = await Context.Items.FindAsync(new object[] {request.ItemId}, cancellationToken);
-            var status = (TodoItem.State)request.TodoItemDto.Status;
-            return itemNullable.ToResultFromNull(
-                    new NotFoundError($"Todo item with id: {request.ItemId} was not found!"))
-                .Bind(item => Result.Merge(
-                        Result.OkIf(item.CanBeRenamedTo(request.TodoItemDto.Name),
-                            $"Item with id {request.ItemId} cannot be renamed to {request.GetNewTodoItemName()}!"),
-                        Result.OkIf(item.CanHaveSetStateTo(status),
-                            $"Item with id {request.ItemId} cannot have state set to to {request.TodoItemDto.Status}!"))
-                    .ToResult(new ValidRequest(item, status, request)));
-        }
-
-        public async Task<Unit> HandleResponse(ValidRequest request, CancellationToken cancellationToken)
-        {
-            request.Item.Rename(request.Request.GetNewTodoItemName());
-            request.Item.SetState(request.Status);
-            Context.Update(request.Item);
-            await Context.SaveChangesAsync(cancellationToken);
-            return Unit.Value;
-        }
-    }
+    public record ValidRequest(TodoItem Item, TodoItem.State Status, string ItemName);
 }

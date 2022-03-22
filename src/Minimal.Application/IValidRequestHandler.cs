@@ -1,23 +1,22 @@
-﻿namespace Minimal.Application;
+﻿using Minimal.Application.Extensions;
 
-public interface
-    IValidRequestHandler<in TRequest, TValidRequest, TResponse> : IRequestHandler<TRequest, Result<TResponse>>
-    where TRequest : IRequest<Result<TResponse>>
+namespace Minimal.Application;
+
+internal interface
+    IValidatedRequestHandler<in TRequest, TValidatedRequest, TResponse> : IRequestHandler<TRequest, TResponse>
+    where TRequest : IRequest<TResponse>
+    where TResponse : ResultBase, new()
 {
-    Task<Result<TValidRequest>> Parse(TRequest request, CancellationToken cancellationToken);
+    async Task<TResponse> IRequestHandler<TRequest, TResponse>.Handle(
+        TRequest request,
+        CancellationToken cancellationToken) =>
+        await Parse(request, cancellationToken)
+            .Bind(
+                parseResult =>
+                    parseResult.BindAsync(resultValue => HandleValidatedRequest(resultValue, cancellationToken)),
+                cancellationToken);
 
-    async Task<TResponse> HandleResponse(TValidRequest request, CancellationToken cancellationToken) =>
-        (await HandleResult(request, cancellationToken)).Value;
+    Task<Result<TValidatedRequest>> Parse(TRequest request, CancellationToken cancellationToken = default);
 
-    async Task<Result<TResponse>> HandleResult(TValidRequest request, CancellationToken cancellationToken) =>
-        Result.Ok(await HandleResponse(request, cancellationToken));
-
-    async Task<Result<TResponse>> IRequestHandler<TRequest, Result<TResponse>>.Handle(TRequest request,
-        CancellationToken cancellationToken)
-    {
-        var parsed = await Parse(request, cancellationToken);
-        return parsed.IsSuccess
-            ? await HandleResult(parsed.Value, cancellationToken)
-            : new Result<TResponse>().WithErrors(parsed.Errors);
-    }
+    Task<TResponse> HandleValidatedRequest(TValidatedRequest request, CancellationToken cancellationToken = default);
 }
