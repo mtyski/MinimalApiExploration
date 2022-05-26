@@ -17,6 +17,8 @@ public class TodoContext : DbContext
             static item =>
             {
                 item.HasKey(static x => x.Id);
+                item.Property(static x => x.Id)
+                    .ValueGeneratedOnAdd();
                 item.Property(static x => x.Name);
                 item.Property(static x => x.Status);
             });

@@ -1,7 +1,5 @@
-﻿using System.Data.Common;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Data.Sqlite;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Minimal.Db;
@@ -12,50 +10,21 @@ public class TodoWebApplicationFactory : WebApplicationFactory<Program>
 {
     private const string TestEnvironmentName = "Test";
 
-    private readonly IConfiguration configuration;
-
-    private DbConnection connection;
+    private TodoContext Context => Services.GetRequiredService<TodoContext>();
 
     public TodoWebApplicationFactory()
     {
-        configuration = new ConfigurationBuilder()
-            .AddJsonFile($"appsettings.{TestEnvironmentName}.json")
-            .Build();
-        connection = CreateAndOpenDatabaseConnection();
+        Context.Database.Migrate();
     }
-
-    private TodoContext Context => Services.GetRequiredService<TodoContext>();
 
     internal void Reset()
     {
-        connection.Dispose();
-        connection = CreateAndOpenDatabaseConnection();
+        Context.Database.EnsureDeleted();
         Context.ChangeTracker.Clear();
-        Context.Database.EnsureCreated();
+        Context.Database.Migrate();
     }
 
     protected override IHost CreateHost(IHostBuilder builder) =>
         base.CreateHost(
             builder.UseEnvironment(TestEnvironmentName));
-
-    protected override void Dispose(bool disposing)
-    {
-        connection.Dispose();
-        base.Dispose(disposing);
-    }
-
-    private DbConnection CreateAndOpenDatabaseConnection()
-    {
-        var databaseConnection = new SqliteConnection(
-            new SqliteConnectionStringBuilder
-            {
-                DataSource = configuration["Database:Source"],
-                Mode = Enum.Parse<SqliteOpenMode>(configuration["Database:Mode"]),
-                Cache = Enum.Parse<SqliteCacheMode>(configuration["Database:Cache"])
-            }.ToString());
-
-        databaseConnection.Open();
-
-        return databaseConnection;
-    }
 }
