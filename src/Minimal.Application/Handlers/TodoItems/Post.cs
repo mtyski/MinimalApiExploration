@@ -33,7 +33,6 @@ public abstract class Post
 
                 return Result.Ok(TodoItemDto.FromTodoItem(item))
                     .WithSuccess(new CreatedAtSuccess(item.Id));
-
             }
         }
     }

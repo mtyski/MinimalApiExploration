@@ -4,17 +4,16 @@ namespace Minimal.Model;
 
 public class TodoItem : BaseEntity<long>
 {
-    private TodoItem(string name)
-        : this(name, State.Created)
-    {
-    }
-
     private TodoItem(
         string name,
-        State status)
+        State status = State.Created)
     {
         Name = name;
         Status = status;
+    }
+
+    protected TodoItem()
+    {
     }
 
     public string Name { get; private set; }

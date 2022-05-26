@@ -1,12 +1,12 @@
 using System.Text.Json.Serialization;
 using FluentValidation;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Minimal.Api.Extensions;
 using Minimal.Application.Handlers.TodoItems;
 using Minimal.Application.PipelineBehavior;
 using Minimal.Db;
 using Microsoft.AspNetCore.Http.Json;
+using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,13 +16,13 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<TodoContext>(
-    opt => opt.UseSqlite(
-        new SqliteConnectionStringBuilder
-        {
-            DataSource = builder.Configuration["Database:Source"],
-            Mode = Enum.Parse<SqliteOpenMode>(builder.Configuration["Database:Mode"]),
-            Cache = Enum.Parse<SqliteCacheMode>(builder.Configuration["Database:Cache"])
-        }.ToString()));
+    opt => opt.UseNpgsql(new NpgsqlConnectionStringBuilder
+    {
+        Host = builder.Configuration["Database:Host"],
+        Database = builder.Configuration["Database:Source"],
+        Username = builder.Configuration["Database:User"],
+        Password = builder.Configuration["Database:Password"]
+    }.ToString()));
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
