@@ -27,7 +27,7 @@ public class ValidItemIsRequested : BaseIntegrationTest
             getResponse
         }.ForEach(static response => response.EnsureSuccessStatusCode());
 
-        var responseContent = await getResponse.Content.ReadAsAsync<TodoItemDto>();
+        var responseContent = await getResponse.Content.ReadFromJsonAsync<TodoItemDto>(SerializerOptions);
 
         responseContent.Should()
             .BeEquivalentTo(

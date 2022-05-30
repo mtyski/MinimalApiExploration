@@ -27,7 +27,7 @@ public class TodoItemsAreRequested : BaseIntegrationTest
 
         getResponse.EnsureSuccessStatusCode();
 
-        var content = await getResponse.Content.ReadAsAsync<List<TodoItemDto>>();
+        var content = await getResponse.Content.ReadFromJsonAsync<List<TodoItemDto>>(SerializerOptions);
 
         content.Should()
             .BeEquivalentTo(ItemNames.Select(static name => new TodoItemDto(name, TodoItemDto.ItemStatus.Created)));

@@ -14,8 +14,8 @@ public class BaseTodoItemUpdateSpecification : BaseIntegrationTest
             ).Result;
 
         ItemToUpdate = response.Content
-            .ReadAsAsync<TodoItemDto>()
-            .Result;
+            .ReadFromJsonAsync<TodoItemDto>(SerializerOptions)
+            .Result!;
 
         ItemUri = response.Headers.Location ??
             throw new NullReferenceException($"POST item response header {nameof(response.Headers.Location)} is null!");

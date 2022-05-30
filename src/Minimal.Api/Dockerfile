@@ -8,6 +8,9 @@ EXPOSE 443
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
 COPY ["Minimal.Api/Minimal.Api.csproj", "Minimal.Api/"]
+COPY ["Minimal.Application/Minimal.Application.csproj", "Minimal.Application/"]
+COPY ["Minimal.Db/Minimal.Db.csproj", "Minimal.Db/"]
+COPY ["Minimal.Model/Minimal.Model.csproj", "Minimal.Model/"]
 RUN dotnet restore "Minimal.Api/Minimal.Api.csproj"
 COPY . .
 WORKDIR "/src/Minimal.Api"
