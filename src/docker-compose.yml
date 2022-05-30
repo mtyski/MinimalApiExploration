@@ -1,4 +1,4 @@
-# only for setting up integration tests
+# only for setting up local tests
 version: "3.4"
 
 services:
@@ -8,11 +8,17 @@ services:
     environment:
       - POSTGRES_DB=TodoDb
       - POSTGRES_USER=sa
-      - POSTGRES_PASSWORD=p@ssw0rd
+      - POSTGRES_PASSWORD=p4ssw0rd
     ports:
       - 5432:5432
     volumes:
       - postgresql-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sa"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   redis:
     image: redis:bullseye
     restart: always
@@ -21,6 +27,7 @@ services:
     command: redis-server --save 20 1
     volumes:
       - redis-storage:/data
+
 volumes:
   postgresql-db:
     driver: local
