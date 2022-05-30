@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Minimal.Db\Minimal.Db.csproj" />
+    <ProjectReference Include="..\Minimal.Redis\Minimal.Redis.csproj" />
   </ItemGroup>
 
 </Project>

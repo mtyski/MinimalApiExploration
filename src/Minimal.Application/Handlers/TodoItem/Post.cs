@@ -1,7 +1,6 @@
 ﻿using Minimal.Db;
-using Minimal.Model;
 
-namespace Minimal.Application.Handlers.TodoItems;
+namespace Minimal.Application.Handlers.TodoItem;
 
 public abstract class Post
 {
@@ -27,7 +26,7 @@ public abstract class Post
 
             public async Task<Result<TodoItemDto>> Handle(Request request, CancellationToken cancellationToken)
             {
-                var item = TodoItem.Create(request.Name);
+                var item = Model.TodoItem.Create(request.Name);
                 Context.Items.Add(item);
                 await Context.SaveChangesAsync(cancellationToken);
 

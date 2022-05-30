@@ -1,33 +1,44 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using FluentValidation;
+using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using Minimal.Api.Extensions;
-using Minimal.Application.Handlers.TodoItems;
+using Minimal.Application.Handlers.TodoItem;
 using Minimal.Application.PipelineBehavior;
 using Minimal.Db;
-using Microsoft.AspNetCore.Http.Json;
+using Minimal.Redis;
 using Npgsql;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Host.ConfigureAppConfiguration(
-    static (_, config) => config.AddEnvironmentVariables());
+builder.Host.ConfigureAppConfiguration(static (_, config) => config.AddEnvironmentVariables());
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddSingleton<IConnectionMultiplexer>(
+    ConnectionMultiplexer.Connect(
+        new ConfigurationOptions
+        {
+            EndPoints = { $"{builder.Configuration["Redis:Host"]}:{builder.Configuration["Redis:Port"]}" }
+        }));
+
+builder.Services.AddSingleton<RedisRepository>();
+
 builder.Services.AddDbContext<TodoContext>(
-    opt => opt.UseNpgsql(new NpgsqlConnectionStringBuilder
-    {
-        Host = builder.Configuration["Database:Host"],
-        Database = builder.Configuration["Database:Source"],
-        Username = builder.Configuration["Database:User"],
-        Password = builder.Configuration["Database:Password"],
-        Port = int.Parse(builder.Configuration["Database:Port"])
-    }.ToString()));
+    opt => opt.UseNpgsql(
+        new NpgsqlConnectionStringBuilder
+        {
+            Host = builder.Configuration["Database:Host"],
+            Database = builder.Configuration["Database:Source"],
+            Username = builder.Configuration["Database:User"],
+            Password = builder.Configuration["Database:Password"],
+            Port = int.Parse(builder.Configuration["Database:Port"])
+        }.ToString()));
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
@@ -60,5 +71,7 @@ namespace Minimal.Api
     /// <summary>
     ///     Required by integration tests.
     /// </summary>
-    public partial class Program { }
+    public  class Program
+    {
+    }
 }
