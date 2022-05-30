@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Minimal.Api.Extensions;
 using Minimal.Application;
-using Minimal.Application.Handlers.TodoItems;
+using Minimal.Application.Handlers.TodoItem;
 
 namespace Minimal.Api.Endpoints.TodoItem;
 

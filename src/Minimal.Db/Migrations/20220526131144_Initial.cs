@@ -1,10 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System.CodeDom.Compiler;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
 namespace Minimal.Db.Migrations;
 
+[GeneratedCode("dotnet-ef", "6.0.0")]
 public partial class Initial : Migration
 {
     protected override void Up(MigrationBuilder migrationBuilder)
