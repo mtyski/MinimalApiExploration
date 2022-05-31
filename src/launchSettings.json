@@ -1,0 +1,15 @@
+{
+  "profiles": {
+    "Docker Compose": {
+      "commandName": "DockerCompose",
+      "composeLaunchAction": "None",
+      "composeLaunchServiceName": "todoapi",
+      "commandVersion": "1.0",
+      "serviceActions": {
+        "postgres": "StartWithoutDebugging",
+        "redis": "StartWithoutDebugging",
+        "todoapi": "StartDebugging"
+      }
+    }
+  }
+}
