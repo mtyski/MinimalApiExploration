@@ -24,7 +24,7 @@ public abstract class GetById
                     IsSuccess: true
                 } successfulResult
                     ? successfulResult
-                    : Result.Fail<TodoItemDto>(new NotFoundError("Todo item with Id: {request.Id} was not found!"));
+                    : Result.Fail<TodoItemDto>(new NotFoundError($"Todo item with Id: {request.Id} was not found!"));
         }
     }
 }

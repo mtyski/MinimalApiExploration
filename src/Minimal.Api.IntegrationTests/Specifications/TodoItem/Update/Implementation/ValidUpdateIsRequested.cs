@@ -15,7 +15,7 @@ public class ValidUpdateIsRequested : BaseTodoItemUpdateSpecification
     {
         var expectedItemDto = new TodoItemDto(
             "Learn to validate requests",
-            TodoItemDto.ItemStatus.Done);
+            TodoItemDto.ItemStatus.InProgress);
 
         var putResponse = await Client.PutAsJsonAsync(ItemUri, expectedItemDto);
 
