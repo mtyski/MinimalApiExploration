@@ -17,7 +17,7 @@ public sealed class NonExistingItemIsUpdated : BaseIntegrationTest
             Uri("items/1"),
             new TodoItemDto(
                 "Blow stuff up!",
-                TodoItemDto.ItemStatus.InProgress));
+                TodoItemDto.ItemStatus.Done));
 
         putResponse.StatusCode.Should()
             .Be(HttpStatusCode.NotFound);
