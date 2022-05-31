@@ -1,6 +1,6 @@
 # MinimalApiExploration
 
-.NET 6 minimal API exploration and experiments
+.NET 6 minimal API exploration and experiments.
 
 ## Used technologies
 
@@ -12,16 +12,31 @@
 
 ## Testing the solution
 
-All tests (with the exception of domain model unit tests)
-require running `docker-compose up` from `src` **beforehand**.
-
 ### Manual tests
 
-To manually test the solution, `Minimal.Api` project
-has to be launched using either `dotnet` CLI or VS.
+To perform manual tests, `docker-compose up` has to be ran
+from `src` directory. Swagger is exposed on port 5000.
 
-### Integration testing
+### Development tests
 
-To run integration tests suite, either `dotnet test` command
-should be ran, targetting `Minimal.Api.IntegrationTests` project,
-or VS test runner should be used to execute tests.
+#### CLI
+
+To run integration test suite from the console,
+following steps have to be taken:
+
+1. `docker-compose up -d` should be ran from `src` directory.
+2. `dotnet test` command should be ran next,
+targetting any of the test projects (or the solution itself).
+
+Aforementioned steps can be combined into following one-liner:
+
+```bash
+docker-compose up -d && dotnet test ./MinimalApiExploration.sln
+```
+
+#### Integration with Visual Studio
+
+Given that VS automatically spins up containers
+if docker compose support is provided, running `docker-compose`
+commands is no longer necessary. Entire test suite can be ran
+either from CLI, or using built-in VS test runner.
