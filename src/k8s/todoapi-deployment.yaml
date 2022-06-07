@@ -37,13 +37,16 @@ spec:
             - name: POSTGRES_USER
               value: sa
           image: postgres:14.3
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "$(POSTGRES_USER)", "-d", "$(POSTGRES_DB)"]
+            initialDelaySeconds: 15
+            timeoutSeconds: 2
           livenessProbe:
             exec:
-              command:
-                - pg_isready -U sa
-            failureThreshold: 5
-            periodSeconds: 5
-            timeoutSeconds: 5
+              command: ["psql", "-U", "$(POSTGRES_USER)", "-W", "$(POSTGRES_PASSWORD)", "-d", "$(POSTGRES_DB)", "-c", "select 1"]
+            initialDelaySeconds: 10
+            timeoutSeconds: 2
           ports:
             - containerPort: 5432
           volumeMounts:
