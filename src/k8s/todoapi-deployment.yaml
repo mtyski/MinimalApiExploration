@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: todoapi
+  name: todoapi
+  namespace: todo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: todoapi
+  template:
+    metadata:
+      labels:
+        app: todoapi
+    spec:
+      containers:
+        - name: todoapi
+          env:
+            - name: Database__Host
+              value: localhost
+            - name: Redis__Host
+              value: localhost
+            - name: ASPNETCORE_URLS
+              value: http://+:8080
+          image: todoapi:0.0.1
+          ports:
+            - containerPort: 8080
+
+        - name: postgres
+          env:
+            - name: POSTGRES_DB
+              value: TodoDb
+            - name: POSTGRES_PASSWORD
+              value: p4ssw0rd
+            - name: POSTGRES_USER
+              value: sa
+          image: postgres:14.3
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready -U sa
+            failureThreshold: 5
+            periodSeconds: 5
+            timeoutSeconds: 5
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: postgresql-db
+
+        - name: redis
+          args:
+            - redis-server
+            - --save
+            - "20"
+            - "1"
+          image: redis:7.0.0
+          livenessProbe:
+            exec:
+              command:
+                - redis-cli
+                - --raw
+                - incr
+                - healthcheck
+            failureThreshold: 5
+            periodSeconds: 5
+            timeoutSeconds: 5
+          ports:
+            - containerPort: 6379
+          volumeMounts:
+            - mountPath: /data
+              name: redis-storage
+      restartPolicy: Always
+      volumes:
+        - name: postgresql-db
+          persistentVolumeClaim:
+            claimName: postgresql-db
+        - name: redis-storage
+          persistentVolumeClaim:
+            claimName: redis-storage
+      restartPolicy: Always
