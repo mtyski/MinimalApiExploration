@@ -2,18 +2,18 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: todoapi
-  name: todoapi
+    app: todoapi-deployment
+  name: todoapi-deployment
   namespace: todo
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: todoapi
+      app: todoapi-app
   template:
     metadata:
       labels:
-        app: todoapi
+        app: todoapi-app
     spec:
       containers:
         - name: todoapi
