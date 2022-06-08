@@ -3,11 +3,11 @@ kind: Service
 metadata:
   labels:
     app: todoapi
-  name: todoapi
+  name: todoapi-service
   namespace: todo
 spec:
   selector:
-    app: todoapi
+    app: todoapi-app
   type: NodePort
   ports:
     - port: 8080
