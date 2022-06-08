@@ -44,24 +44,25 @@ either from CLI, or using built-in VS test runner.
 ## K8s cluster
 
 Kubernetes resource configuration files are located in `src/k8s`
-subdirectory. Resources were tested using [minikube](https://minikube.sigs.k8s.io/docs/),
-and following instructions assume that minikube is installed on your environment.
+subdirectory. Resources were tested using Docker desktop K8S integration.
+Further instruction assumes that this is enabled.
 
 ### Create the deployment
 
 To create a deployment, following steps have to be taken
 (assuming all steps are done from the root of the repo):
 
+- Deploy NGINX ingress controller resources (one-time setup,
+unless the cluster is reset):
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.2.0/deploy/static/provider/cloud/deploy.yaml
+```
+
 - Build api image locally:
 
 ```bash
 docker build -f ./src/Minimal.Api/Dockerfile -t todoapi:0.0.1 ./src
-```
-
-- Load the image in minikube cluster:
-
-```bash
-minikube image load todoapi:0.0.1
 ```
 
 - Apply Kubernetes resource definitions
@@ -70,18 +71,27 @@ minikube image load todoapi:0.0.1
 kubectl apply -f ./src/k8s
 ```
 
-You can monitor the deployment in minikube dashboard.
+You can monitor the deployment using command:
+
+```bash
+kubectl get deployment -n todo -w
+```
 
 ### Exposing API
 
 To expose the API, port-forwarding is required:
 
 ```bash
-kubectl port-forward service/todoapi -n todo 30000:
+kubectl port-forward service/ingress-nginx-controller -n ingress-nginx 80:80
 ```
 
-After running aforementioned command, Swagger UI can be accessed under
-`localhost:30000/swagger/index.html`
+After running aforementioned command, `/etc/hosts` has to be edited with following entry provided:
+`127.0.0.1 todo.poc.com`.
+
+With those two steps completed, Swagger UI should be available under `todo.poc.com`.
+
+**NOTE:** binding port 80 requires elevated priviledges. If this port cannot be bound,
+use any port >5000 (run `netstat -an` to check whether the port is avaliable).
 
 ### Removing the deployment
 
