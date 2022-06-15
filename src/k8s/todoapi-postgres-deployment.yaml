@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: todoapi-postgres-deployment
+  name: todoapi-postgres-deployment
+  namespace: todo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: todoapi-postgres
+  template:
+    metadata:
+      labels:
+        app: todoapi-postgres
+    spec:
+      containers:
+        - name: postgres
+          env:
+            - name: POSTGRES_DB
+              value: TodoDb
+            - name: POSTGRES_PASSWORD
+              value: p4ssw0rd
+            - name: POSTGRES_USER
+              value: sa
+          image: postgres:14.3
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "$(POSTGRES_USER)", "-d", "$(POSTGRES_DB)"]
+            initialDelaySeconds: 15
+            timeoutSeconds: 2
+          livenessProbe:
+            exec:
+              command: ["psql", "-U", "$(POSTGRES_USER)", "-W", "$(POSTGRES_PASSWORD)", "-d", "$(POSTGRES_DB)", "-c", "select 1"]
+            initialDelaySeconds: 10
+            timeoutSeconds: 2
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: postgresql-db
+      volumes:
+        - name: postgresql-db
+          persistentVolumeClaim:
+            claimName: postgresql-db
+      restartPolicy: Always
