@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: todoapi-redis-deployment
+  name: todoapi-redis-deployment
+  namespace: todo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: todoapi-redis
+  template:
+    metadata:
+      labels:
+        app: todoapi-redis
+    spec:
+      containers:
+        - name: redis
+          args:
+            - redis-server
+            - --save
+            - "20"
+            - "1"
+          image: redis:7.0.0
+          livenessProbe:
+            exec:
+              command:
+                - redis-cli
+                - --raw
+                - incr
+                - healthcheck
+            failureThreshold: 5
+            periodSeconds: 5
+            timeoutSeconds: 5
+          ports:
+            - containerPort: 6379
+          volumeMounts:
+            - mountPath: /data
+              name: redis-storage
+      volumes:
+        - name: redis-storage
+          persistentVolumeClaim:
+            claimName: redis-storage
+      restartPolicy: Always

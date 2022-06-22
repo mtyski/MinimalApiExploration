@@ -1,8 +1,8 @@
 ﻿using Minimal.Application.Errors;
 using Minimal.Db;
-using Minimal.Model;
+using ItemUpdatedEvent = Minimal.Model.TodoItem.DomainEvents.ItemUpdated;
 
-namespace Minimal.Application.Handlers.TodoItems;
+namespace Minimal.Application.Handlers.TodoItem;
 
 public abstract class Put
 {
@@ -39,12 +39,12 @@ public abstract class Put
                         {
                             var (itemId, (_, status)) = request;
                             var item = await FindItemByIdAsync(itemId, context, cancellationToken);
-                            return item!.CanHaveSetStateTo((TodoItem.State)status);
+                            return item!.CanHaveSetStateTo((Model.TodoItem.State)status);
                         })
                     .WithMessage(static r => $"Item with id {r.ItemId} cannot have state set to to {r.TodoItemDto.Status}!");
             }
 
-            private static async Task<TodoItem?> FindItemByIdAsync(long id, TodoContext context, CancellationToken token) =>
+            private static async Task<Model.TodoItem?> FindItemByIdAsync(long id, TodoContext context, CancellationToken token) =>
                 await context.Items.FindAsync(new object[] { id }, token);
         }
 
@@ -64,7 +64,8 @@ public abstract class Put
                     cancellationToken);
 
                 item!.Rename(request.GetNewTodoItemName());
-                item.SetState((TodoItem.State)request.TodoItemDto.Status);
+                item.SetState((Model.TodoItem.State)request.TodoItemDto.Status);
+                item.RegisterEvent(new ItemUpdatedEvent(item));
 
                 Context.Update(item);
                 await Context.SaveChangesAsync(cancellationToken);

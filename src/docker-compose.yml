@@ -1,0 +1,60 @@
+# only for setting up local tests
+version: "3.4"
+
+services:
+  todoapi:
+    image: ${DOCKER_REGISTRY}todoapi
+    build:
+      context: .
+      dockerfile: Minimal.Api/Dockerfile
+    ports:
+      - 5000:5000
+    environment:
+      - Database__Host=postgres
+      - Redis__Host=redis
+      - ASPNETCORE_URLS=http://+:5000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy  
+    links:
+      - postgres
+      - redis
+
+  postgres:
+    image: postgres:14.3
+    restart: always
+    environment:
+      - POSTGRES_DB=TodoDb
+      - POSTGRES_USER=sa
+      - POSTGRES_PASSWORD=p4ssw0rd
+    ports:
+      - 5432:5432
+    volumes:
+      - postgresql-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sa"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7.0.0
+    restart: always
+    ports:
+      - 6379:6379
+    command: redis-server --save 20 1
+    volumes:
+      - redis-storage:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli", "--raw", "incr", "healthcheck"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgresql-db:
+    driver: local
+  redis-storage:
+    driver: local

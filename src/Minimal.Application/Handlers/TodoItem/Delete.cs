@@ -1,7 +1,8 @@
 ﻿using Minimal.Application.Errors;
 using Minimal.Db;
+using ItemDeletedEvent = Minimal.Model.TodoItem.DomainEvents.ItemDeleted;
 
-namespace Minimal.Application.Handlers.TodoItems;
+namespace Minimal.Application.Handlers.TodoItem;
 
 public abstract class Delete
 {
@@ -12,8 +13,9 @@ public abstract class Delete
             public Validator(TodoContext context)
             {
                 RuleFor(static r => r.ItemId)
-                    .MustAsync(async (itemId, cancellationToken) =>
-                        await context.Items.FindAsync(new object[] { itemId }, cancellationToken) is not null)
+                    .MustAsync(
+                        async (itemId, cancellationToken) =>
+                            await context.Items.FindAsync(new object[] { itemId }, cancellationToken) is not null)
                     .WithErrorCode(NotFoundError.ErrorCode)
                     .WithMessage(static r => $"Todo item with id: {r.ItemId} was not found!");
             }
@@ -35,7 +37,9 @@ public abstract class Delete
                     new object?[] { request.ItemId },
                     cancellationToken);
 
-                Context.Items.Remove(item!);
+                item!.RegisterEvent(new ItemDeletedEvent(item.Id));
+
+                Context.Items.Remove(item);
 
                 await Context.SaveChangesAsync(cancellationToken);
 
