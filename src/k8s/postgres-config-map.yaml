@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: todoapi-postgres-config
+  namespace: todo
+  labels:
+    type: config
+    app: todoapi-postgres-deployment
+data:
+  TIMESCALEDB_TELEMETRY: "off"

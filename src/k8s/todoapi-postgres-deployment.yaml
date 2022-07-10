@@ -17,22 +17,28 @@ spec:
     spec:
       containers:
         - name: postgres
-          env:
-            - name: POSTGRES_DB
-              value: TodoDb
-            - name: POSTGRES_PASSWORD
-              value: p4ssw0rd
-            - name: POSTGRES_USER
-              value: sa
+          envFrom:
+            - secretRef:
+                name: todoapi-postgres-secrets
+            - configMapRef:
+                name: todoapi-postgres-config
           image: postgres:14.3
           readinessProbe:
             exec:
-              command: ["pg_isready", "-U", "$(POSTGRES_USER)", "-d", "$(POSTGRES_DB)"]
+              command: 
+                - bash
+                - "-c"
+                - |
+                  pg_isready -U $POSTGRES_USER -d $POSTGRES_DB
             initialDelaySeconds: 15
             timeoutSeconds: 2
           livenessProbe:
             exec:
-              command: ["psql", "-U", "$(POSTGRES_USER)", "-W", "$(POSTGRES_PASSWORD)", "-d", "$(POSTGRES_DB)", "-c", "select 1"]
+              command:
+                - bash
+                - "-c"
+                - |
+                  psql -U $POSTGRES_USER -W $POSTGRES_PASSWORD -d $POSTGRES_DB -c select 1
             initialDelaySeconds: 10
             timeoutSeconds: 2
           ports:
