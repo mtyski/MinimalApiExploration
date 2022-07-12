@@ -44,10 +44,27 @@ spec:
           ports:
             - containerPort: 5432
           volumeMounts:
-            - mountPath: /var/lib/postgresql/data
+            - mountPath: /var/lib/postgresql/data/
               name: postgresql-db
+            - mountPath: /var/lib/postgresql/pg_hba.conf
+              subPath: pg_hba.conf
+              name: pg-hba-config
+            - mountPath: /var/lib/postgresql/postgresql.conf
+              subPath: postgresql.conf
+              name: pg-config
+          args:
+            - "-c"
+            - "config_file=/var/lib/postgresql/postgresql.conf"
+            - "-c"
+            - "hba_file=/var/lib/postgresql/pg_hba.conf"
       volumes:
         - name: postgresql-db
           persistentVolumeClaim:
             claimName: postgresql-db
+        - name: pg-hba-config
+          configMap:
+            name: pg-hba-conf
+        - name: pg-config
+          configMap:
+            name: postgresql-conf
       restartPolicy: Always
