@@ -30,8 +30,12 @@ spec:
       restartPolicy: Always
       initContainers:
       - name: init-postgres
-        image: busybox:1.28
-        command: ['sh', '-c', "echo waiting for postgres; until nslookup todoapi-postgres-service.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do sleep 1; done"]
+        image: ghcr.io/groundnuty/k8s-wait-for:v1.6
+        args:
+          - "pod"
+          - "-lapp=todoapi-postgres"
       - name: init-redis
-        image: busybox:1.28
-        command: ['sh', '-c', "echo waiting for redis; until nslookup todoapi-redis-service.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do sleep 1; done"]
+        image: ghcr.io/groundnuty/k8s-wait-for:v1.6
+        args:
+          - "pod"
+          - "-lapp=todoapi-redis"
