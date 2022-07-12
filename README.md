@@ -77,6 +77,10 @@ You can monitor the deployment using command:
 kubectl get deployment -n todo -w
 ```
 
+API deployment uses Kubernetes' `initContainers`
+and [k8s wait for](https://github.com/groundnuty/k8s-wait-for)
+image to orchestrate the application deployment.
+
 ### Exposing API
 
 To expose the API, port-forwarding is required:
