@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "todoapi.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "todoapi.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "todoapi.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "todoapi.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "todoapi.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
+          env:
+            - name: Database__Host
+              value: {{ include "postgres.fullname" .Subcharts.postgres }}
+            - name: Database__Port
+              value: {{ .Subcharts.postgres.Values.service.port | quote }}
+            - name: Database__Source
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "postgres.fullname" .Subcharts.postgres }}-secret
+                  key: POSTGRES_DB
+            - name: Database__User
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "postgres.fullname" .Subcharts.postgres }}-secret
+                  key: POSTGRES_USER
+            - name: Database__Password
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "postgres.fullname" .Subcharts.postgres }}-secret
+                  key: POSTGRES_PASSWORD
+            - name: Redis__Host
+              value: {{ include "redis.fullname" .Subcharts.redis }}
+            - name: Redis__Port
+              value: {{ .Subcharts.redis.Values.service.port | quote }}
+            - name: ASPNETCORE_URLS
+              value: http://+:{{ .Values.service.port }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+      restartPolicy: {{ .Values.restartPolicy }}

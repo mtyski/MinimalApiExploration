@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "postgres.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "postgres.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "postgres.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "postgres.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "postgres.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          envFrom:
+            - secretRef:
+                name: {{ include "postgres.fullname" . }}-secret
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          readinessProbe:
+            exec:
+              command: ["/bin/sh", "-c", "exec", "pg_isready", "-U", "$POSTGRES_USER", "-h", "127.0.0.1", "-p", "5432"]
+            timeoutSeconds: 5
+          livenessProbe:
+            exec:
+              command: ["/bin/sh", "-c", "exec", "pg_isready", "-U", "$POSTGRES_USER", "-h", "127.0.0.1", "-p", "5432"]
+            initialDelaySeconds: 30
+            timeoutSeconds: 5
+          ports:
+            - containerPort: {{ .Values.service.port }}
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data/
+              name: postgresql-db
+            - mountPath: /var/lib/postgresql/pg_hba.conf
+              subPath: pg_hba.conf
+              name: pg-hba-config
+            - mountPath: /var/lib/postgresql/postgresql.conf
+              subPath: postgresql.conf
+              name: pg-config
+          args:
+            - "-c"
+            - "config_file=/var/lib/postgresql/postgresql.conf"
+            - "-c"
+            - "hba_file=/var/lib/postgresql/pg_hba.conf"
+      volumes:
+        - name: postgresql-db
+          persistentVolumeClaim:
+            claimName: {{ include "postgres.fullname" . }}-storage
+        - name: pg-hba-config
+          configMap:
+            name: {{ include "postgres.fullname" . }}-hba-config
+        - name: pg-config
+          configMap:
+            name: {{ include "postgres.fullname" . }}-postgresql-conf
+      restartPolicy: {{ .Values.restartPolicy }}
