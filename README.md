@@ -41,11 +41,16 @@ if docker compose support is provided, running `docker-compose`
 commands is no longer necessary. Entire test suite can be ran
 either from CLI, or using built-in VS test runner.
 
-## K8s cluster
+## Helm chart
 
-Kubernetes resource configuration files are located in `src/k8s`
-subdirectory. Resources were tested using Docker desktop K8S integration.
-Further instruction assumes that this is enabled.
+Helm chart for the api resides in `./src/todo-api` directory.
+
+### Prerequisites
+
+- Working Kubernetes cluster.
+  - Chart was tested using Docker Desktop-provisioned Kubernetes cluster,
+    but any solution should work.
+- [Helm](https://helm.sh/).
 
 ### Create the deployment
 
@@ -65,21 +70,27 @@ kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/cont
 docker build -f ./src/Minimal.Api/Dockerfile -t todoapi:0.0.1 ./src
 ```
 
-- Apply Kubernetes resource definitions
+- Create values file for postgres sub-chart with credentials and db name:
 
-```bash
-kubectl apply -f ./src/k8s
+```yaml
+postgres:
+  db:
+    user: <username />
+    password: <password />
+    name: <database name />
+```
+
+- Install the chart:
+
+```
+helm install todo-api ./src/todo-api --create-namespace -n todo-api -f <path to the file created in the previous step />
 ```
 
 You can monitor the deployment using command:
 
 ```bash
-kubectl get deployment -n todo -w
+kubectl get deployment -n todo-api -w
 ```
-
-API deployment uses Kubernetes' `initContainers`
-and [k8s wait for](https://github.com/groundnuty/k8s-wait-for)
-image to orchestrate the application deployment.
 
 ### Exposing API
 
@@ -94,14 +105,13 @@ After running aforementioned command, `/etc/hosts` has to be edited with followi
 
 With those two steps completed, Swagger UI should be available under `todo.poc.com`.
 
-**NOTE:** binding port 80 requires elevated priviledges. If this port cannot be bound,
-use any port >5000 (run `netstat -an` to check whether the port is avaliable).
+**NOTE:** binding port 80 requires elevated privileges. If this port cannot be bound,
+use any port >5000 (run `netstat -an` to check whether the port is available).
 
 ### Removing the deployment
 
-Configuration files create a separate namespace used to run the deployment.
-Removing it can be done with:
+Use `helm uninstall` command in conjunction with `kubectl delete namespace`:
 
 ```bash
-kubectl delete namespace todo
+helm uninstall todo-api -n todo-api && kubectl delete namespace todo-api
 ```
