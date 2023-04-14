@@ -64,4 +64,19 @@ spec:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
+      initContainers:
+        - name: init-postgres
+          image: quay.io/stackanetes/kubernetes-entrypoint:v0.3.1
+          env:
+            - name: DEPENDENCY_POD_JSON
+              value: '["labels":{ {{- include "postgres.labels" .Subcharts.postgres }} }]'
+            - name: COMMAND
+              value: echo 'Postgres is up!'
+        - name: init-redis
+          image: quay.io/stackanetes/kubernetes-entrypoint:v0.3.1
+          env:
+            - name: DEPENDENCY_POD_JSON
+              value: '["labels":{ {{- include "redis.labels" .Subcharts.redis }} }]'
+            - name: COMMAND
+              value: echo 'Redis is up!'
       restartPolicy: {{ .Values.restartPolicy }}
